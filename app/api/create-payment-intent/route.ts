@@ -5,13 +5,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 export async function POST(request: NextRequest) {
   try {
-    const { amount, campaignId } = await request.json()
+    const { amount, campaignId, donorId } = await request.json()
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100),
       currency: 'eur',
       metadata: {
         campaignId,
+        donorId: donorId || '',
       },
     })
 

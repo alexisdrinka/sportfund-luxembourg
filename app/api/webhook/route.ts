@@ -28,10 +28,12 @@ export async function POST(request: NextRequest) {
   if (event.type === 'payment_intent.succeeded') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent
     const campaignId = paymentIntent.metadata.campaignId
+    const donorId = paymentIntent.metadata.donorId || null
     const amount = paymentIntent.amount / 100
 
     await supabase.from('donations').insert({
       campaign_id: campaignId,
+      donor_id: donorId,
       amount,
       is_recurring: false,
     })

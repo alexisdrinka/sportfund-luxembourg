@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { createClient } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -38,8 +39,7 @@ function CheckoutForm({ amount, campaignId }: { amount: number, campaignId: stri
       <button
         type="submit"
         disabled={!stripe || loading}
-        className="bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 transition mt-2"
-      >
+        className="bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 transition mt-2">
         {loading ? 'Traitement...' : `Payer ${amount}€`}
       </button>
     </form>
@@ -52,45 +52,67 @@ export default function DonatePage({ params }: { params: Promise<{ id: string }>
   const [selectedAmount, setSelectedAmount] = useState(50)
   const [campaignId, setCampaignId] = useState('')
   const [campaign, setCampaign] = useState<any>(null)
+  const [donorId, setDonorId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const [step, setStep] = useState<'amount' | 'payment'>('amount')
+  const router = useRouter()
 
   useEffect(() => {
     const init = async () => {
       const { id } = await params
       setCampaignId(id)
+
       const supabase = createClient()
-      const { data } = await supabase
+
+      const { data: { user } } = await supabase.auth.getUser()
+      console.log('User:', user)
+      console.log('User ID:', user?.id)
+
+      if (!user) {
+        router.push(`/auth/login?redirect=/donate/${id}`)
+        return
+      }
+
+      setDonorId(user.id)
+      console.log('Donor ID set:', user.id)
+
+      const { data: campaignData } = await supabase
         .from('campaigns')
         .select('title, target_amount')
         .eq('id', id)
         .single()
-      setCampaign(data)
+      setCampaign(campaignData)
+
+      setLoading(false)
     }
     init()
   }, [])
 
-  const handleAmountSelect = async (selectedAmt: number) => {
+  const handleAmountSelect = (selectedAmt: number) => {
     setSelectedAmount(selectedAmt)
     setAmount(selectedAmt)
   }
 
   const handleContinue = async () => {
+    console.log('handleContinue - donorId:', donorId)
     const res = await fetch('/api/create-payment-intent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount, campaignId }),
+      body: JSON.stringify({ amount, campaignId, donorId }),
     })
     const data = await res.json()
     setClientSecret(data.clientSecret)
     setStep('payment')
   }
 
+  if (loading) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-gray-400 font-semibold">Chargement...</div>
+    </div>
+  )
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-8 py-4">
-        <a href="/" className="text-2xl font-black text-orange-500">SportFund Luxembourg</a>
-      </nav>
-
       <div className="max-w-md mx-auto px-8 py-12">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
           <h2 className="text-2xl font-black text-gray-900 mb-2">Faire un don</h2>
@@ -105,12 +127,7 @@ export default function DonatePage({ params }: { params: Promise<{ id: string }>
                   <button
                     key={amt}
                     onClick={() => handleAmountSelect(amt)}
-                    className={`border-2 rounded-lg py-2 text-sm font-bold transition ${
-                      selectedAmount === amt
-                        ? 'border-orange-400 bg-orange-50 text-orange-500'
-                        : 'border-gray-200 text-gray-700 hover:border-orange-300'
-                    }`}
-                  >
+                    className={`border-2 rounded-lg py-2 text-sm font-bold transition ${selectedAmount === amt ? 'border-orange-400 bg-orange-50 text-orange-500' : 'border-gray-200 text-gray-700 hover:border-orange-300'}`}>
                     {amt}€
                   </button>
                 ))}
@@ -123,14 +140,12 @@ export default function DonatePage({ params }: { params: Promise<{ id: string }>
                   value={amount}
                   onChange={e => { setAmount(Number(e.target.value)); setSelectedAmount(0) }}
                   className="border-2 border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-900 focus:border-orange-400 focus:outline-none"
-                  min="1"
-                />
+                  min="1" />
               </div>
 
               <button
                 onClick={handleContinue}
-                className="bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 transition"
-              >
+                className="bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 transition">
                 Continuer — {amount}€
               </button>
             </div>
