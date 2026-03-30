@@ -1,27 +1,26 @@
 'use client'
 
+import { useAuth } from '@/lib/useAuth'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
 
 export default function CampaignsPage() {
+  const { user, profile, loading } = useAuth('athlete')
   const [campaigns, setCampaigns] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const [campaignsLoading, setCampaignsLoading] = useState(true)
   const supabase = createClient()
 
   useEffect(() => {
-    const fetchCampaigns = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/auth/login'); return }
+    if (!user || profile?.role !== 'athlete') return
 
+    const fetchCampaigns = async () => {
       const { data: athleteProfile } = await supabase
         .from('athlete_profiles')
         .select('id')
         .eq('user_id', user.id)
         .single()
 
-      if (!athleteProfile) { setLoading(false); return }
+      if (!athleteProfile) { setCampaignsLoading(false); return }
 
       const { data } = await supabase
         .from('campaigns')
@@ -30,13 +29,21 @@ export default function CampaignsPage() {
         .order('created_at', { ascending: false })
 
       setCampaigns(data || [])
-      setLoading(false)
+      setCampaignsLoading(false)
     }
     fetchCampaigns()
-  }, [])
+  }, [user, profile])
+
+  if (loading || campaignsLoading) return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="text-gray-400 font-semibold">Chargement...</div>
+    </div>
+  )
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
+
+      {/* SIDEBAR */}
       <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-6 border-b border-gray-200">
           <h1 className="text-xl font-black text-orange-500">SportFund</h1>
@@ -58,9 +65,7 @@ export default function CampaignsPage() {
           <a href="/dashboard/campaigns/new" className="bg-orange-500 text-white font-bold px-5 py-2.5 rounded-xl hover:bg-orange-600 transition text-sm">Nouvelle campagne</a>
         </div>
 
-        {loading ? (
-          <div className="text-center text-gray-400 py-20">Chargement...</div>
-        ) : campaigns.length === 0 ? (
+        {campaigns.length === 0 ? (
           <div className="bg-white rounded-2xl p-10 shadow-sm border border-gray-100 text-center">
             <div className="text-5xl mb-4">🎯</div>
             <h3 className="text-lg font-black text-gray-900 mb-2">Aucune campagne</h3>
@@ -108,4 +113,3 @@ export default function CampaignsPage() {
     </div>
   )
 }
- 
