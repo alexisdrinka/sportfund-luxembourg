@@ -21,19 +21,6 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
 
-      {/* NAVBAR */}
-      <nav className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
-        <h1 className="text-2xl font-black text-orange-500">SportFund Luxembourg</h1>
-        <div className="flex items-center gap-3">
-          <a href="/auth/login" className="text-sm font-semibold text-gray-600 hover:text-orange-500 px-4 py-2 rounded-lg hover:bg-orange-50 transition">
-            Connexion
-          </a>
-          <a href="/auth/register" className="bg-orange-500 text-white text-sm font-bold px-4 py-2 rounded-lg hover:bg-orange-600 transition">
-            S'inscrire
-          </a>
-        </div>
-      </nav>
-
       {/* HERO */}
       <div className="bg-white border-b border-gray-100 px-8 py-20 text-center">
         <div className="inline-block bg-orange-100 text-orange-600 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-widest">
@@ -46,12 +33,8 @@ export default async function HomePage() {
           Soutenez les sportifs luxembourgeois talentueux dans leur parcours vers l'excellence.
         </p>
         <div className="flex items-center justify-center gap-4">
-          <a href="/auth/register?role=athlete" className="bg-orange-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-orange-600 transition">
-            Je suis sportif
-          </a>
-          <a href="/auth/register?role=donor" className="bg-white text-gray-700 font-bold px-6 py-3 rounded-xl border-2 border-gray-200 hover:border-orange-400 hover:text-orange-500 transition">
-            Je veux soutenir
-          </a>
+          <a href="/auth/register?role=athlete" className="bg-orange-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-orange-600 transition">Je suis sportif</a>
+          <a href="/auth/register?role=donor" className="bg-white text-gray-700 font-bold px-6 py-3 rounded-xl border-2 border-gray-200 hover:border-orange-400 hover:text-orange-500 transition">Je veux soutenir</a>
         </div>
 
         {/* STATS */}
@@ -115,9 +98,7 @@ export default async function HomePage() {
                       </div>
                     )}
                   </div>
-                  <a href={`/campaigns/${campaign.id}`} className="mt-3 block w-full bg-orange-500 text-white font-bold py-2 rounded-lg hover:bg-orange-600 transition text-sm text-center">
-                    Soutenir
-                  </a>
+                  <a href={`/campaigns/${campaign.id}`} className="mt-3 block w-full bg-orange-500 text-white font-bold py-2 rounded-lg hover:bg-orange-600 transition text-sm text-center">Soutenir</a>
                 </div>
               </div>
             ))}
@@ -126,9 +107,7 @@ export default async function HomePage() {
           <div className="text-center py-20 text-gray-400">
             <div className="text-5xl mb-4">🏆</div>
             <p className="font-semibold">Aucune campagne active pour le moment.</p>
-            <a href="/auth/register" className="mt-4 inline-block bg-orange-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-orange-600 transition">
-              Creer une campagne
-            </a>
+            <a href="/auth/register" className="mt-4 inline-block bg-orange-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-orange-600 transition">Creer une campagne</a>
           </div>
         )}
       </div>
